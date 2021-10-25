@@ -31,7 +31,7 @@ import {urlBase} from './utils';
 import {getCSRFHeader} from '.';
 import {createAction, Action} from 'redux-actions';
 import {addHttpHeaders} from '../actions';
-import {serializeValue, SERIALIZER_BOOKKEEPER} from '../serializers';
+import {serializeValue, SERIALIZER_BOOKKEEPER, deserializeLayout} from '../serializers';
 
 export const addBlockedCallbacks = createAction<IBlockedCallback[]>(
     CallbackActionType.AddBlocked
@@ -371,12 +371,13 @@ function handleServerside(
             }
 
             if (status === STATUS.OK) {
-                return res.json().then((data: any) => {
+                return res.json().then(async (data: any) => {
                     const {multi, response} = data;
                     if (hooks.request_post) {
                         hooks.request_post(payload, response);
                     }
 
+                    await deserializeLayout(response);
                     let result;
                     if (multi) {
                         result = response;

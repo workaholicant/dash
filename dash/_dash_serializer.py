@@ -85,7 +85,8 @@ class DashSerializer:
     def serialize_value(cls, value):
         if isinstance(value, pd.DataFrame):
             # return serializer.serialize(prop, engine="pyarrow")
-            return DataFrameSerializer.serialize(value, engine="to_dict")
+            # return DataFrameSerializer.serialize(value, engine="to_dict")
+            return DataFrameSerializer.serialize(value, engine="fastparquet")
         return value
 
     @classmethod
@@ -97,7 +98,8 @@ class DashSerializer:
         propValue = getattr(component, propName)
         if isinstance(propValue, pd.DataFrame):
             # return serializer.serialize(prop, engine="pyarrow")
-            return DataFrameSerializer.serialize(propValue, engine="to_dict")
+            return DataFrameSerializer.serialize(propValue, engine="fastparquet")
+            # return DataFrameSerializer.serialize(propValue, engine="to_dict")
         return propValue
 
     @classmethod

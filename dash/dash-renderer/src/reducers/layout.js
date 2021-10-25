@@ -5,7 +5,7 @@ import {deserializeLayout, SERIALIZER_BOOKKEEPER} from '../serializers';
 
 const layout = (state = {}, action) => {
     if (action.type === getAction('SET_LAYOUT')) {
-        return deserializeLayout(action.payload);
+        return action.payload;
     } else if (
         includes(action.type, [
             'UNDO_PROP_CHANGE',

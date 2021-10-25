@@ -9,23 +9,26 @@ const supportedTypes = {
 };
 
 export const SERIALIZER_BOOKKEEPER = '__dash_serialized_props';
-export const deserializeLayout = layout => {
+export const deserializeLayout = async layout => {
     const markedLayout = {...layout, [SERIALIZER_BOOKKEEPER]: {}};
     const {
         props,
         props: {children}
     } = layout;
     if (type(children) === 'Array')
-        markedLayout.props.children = children.map(child =>
-            deserializeLayout(child)
-        );
+        // markedLayout.props.children = children.forEach(child =>
+        //     deserializeLayout(child)
+        // );
+        for (let index = 0; index < children.length; index++) {
+            children[index] = await deserializeLayout(children[index]);
+        }
 
     if (type(children) === 'Object')
-        markedLayout.props.children = deserializeLayout(children);
+        markedLayout.props.children = await deserializeLayout(children);
 
-    Object.entries(props).forEach(([key, value]) => {
+    Object.entries(props).forEach(async ([key, value]) => {
         if (prop(PROP_TYPE, value)) {
-            deserializeValue(markedLayout, key, value);
+            await deserializeValue(markedLayout, key, value);
         } else {
             markedLayout.props[key] = value;
         }
@@ -33,13 +36,13 @@ export const deserializeLayout = layout => {
     return markedLayout;
 };
 
-const deserializeValue = (
+const deserializeValue = async (
     layout,
     key,
     {[PROP_TYPE]: type, [PROP_ENGINE]: engine, [PROP_VALUE]: originalValue}
 ) => {
     layout[SERIALIZER_BOOKKEEPER][key] = {type, engine};
-    const [val, missingProps] = supportedTypes[type]?.deserialize(
+    const [val, missingProps] = await supportedTypes[type]?.deserialize(
         engine,
         originalValue
     ) || [originalValue, {}];
