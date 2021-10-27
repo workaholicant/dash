@@ -9,6 +9,18 @@ const supportedTypes = {
 };
 
 export const SERIALIZER_BOOKKEEPER = '__dash_serialized_props';
+export const deserializedCallbackResponse = async response => {
+    if (Object.keys(response).length == 1) {
+        return {
+            [Object.keys(response)[0]]: (
+                await deserializeLayout({props: Object.values(response)[0]})
+            ).props
+        };
+    } else {
+        return (await deserializeLayout({props: response})).props;
+    }
+};
+
 export const deserializeLayout = async layout => {
     const markedLayout = {...layout, [SERIALIZER_BOOKKEEPER]: {}};
     const {
@@ -16,9 +28,6 @@ export const deserializeLayout = async layout => {
         props: {children}
     } = layout;
     if (type(children) === 'Array')
-        // markedLayout.props.children = children.forEach(child =>
-        //     deserializeLayout(child)
-        // );
         for (let index = 0; index < children.length; index++) {
             children[index] = await deserializeLayout(children[index]);
         }
@@ -41,23 +50,35 @@ const deserializeValue = async (
     key,
     {[PROP_TYPE]: type, [PROP_ENGINE]: engine, [PROP_VALUE]: originalValue}
 ) => {
-    layout[SERIALIZER_BOOKKEEPER][key] = {type, engine};
-    const [val, missingProps] = await supportedTypes[type]?.deserialize(
+    const [val, missingProps] = (await supportedTypes[type]?.deserialize(
         engine,
         originalValue
-    ) || [originalValue, {}];
+    )) || [originalValue, {}];
+    layout[SERIALIZER_BOOKKEEPER][key] = {
+        type,
+        engine,
+        autoFilledProps: Object.keys(missingProps)
+    };
     layout.props[key] = val;
     for (const k in missingProps) {
         layout.props[k] = missingProps[k];
     }
 };
 
-export const serializeValue = ({type, engine}, value, props) => {
+export const serializeValue = (
+    {type, engine, autoFilledProps},
+    value,
+    props
+) => {
     if (!type) return value;
     const serializedValue = {};
     serializedValue[PROP_TYPE] = type;
     serializedValue[PROP_ENGINE] = engine;
     serializedValue[PROP_VALUE] =
-        supportedTypes[type]?.serialize(engine, value, props) || value;
+        supportedTypes[type]?.serialize(
+            engine,
+            value,
+            autoFilledProps.map(p => ({[p]: props[p]}))
+        ) || value;
     return serializedValue;
 };

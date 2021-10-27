@@ -6,7 +6,8 @@ function u8array_create(data: string) {
     // necessary.
     const byte_chars = atob(data);
     const byte_numbers = [];
-    for (let index = 0; index < byte_chars.length; index++) byte_numbers.push(byte_chars.charCodeAt(index));
+    for (let index = 0; index < byte_chars.length; index++)
+        byte_numbers.push(byte_chars.charCodeAt(index));
     const byte_array = new Uint8Array(byte_numbers);
     return byte_array;
 }
@@ -15,14 +16,20 @@ const fromParquet = async (_parquetFile: string) => {
     const records: any[] = [];
     const parquetData = Buffer.from(u8array_create(_parquetFile));
     const reader = await parquet.ParquetReader.openBuffer(parquetData);
+    const schema = reader.getSchema();
+    const columns = schema.fieldList.map((field: {name: string}) => ({
+        name: field.name,
+        id: field.name
+    }));
     const cursor = reader.getCursor();
-    let record = null;
-    do {
-        record = await cursor.next();
+    let record = await cursor.next();
+    while (record) {
         records.push(record);
-    } while (record);
+        record = await cursor.next();
+    }
     reader.close();
-    return records;
+    const result = [records, {columns}];
+    return result;
 };
 
 const transformPromise = (

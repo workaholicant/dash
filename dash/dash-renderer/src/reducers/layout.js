@@ -1,7 +1,7 @@
 import {append, assocPath, includes, lensPath, mergeRight, view} from 'ramda';
 
 import {getAction} from '../actions/constants';
-import {deserializeLayout, SERIALIZER_BOOKKEEPER} from '../serializers';
+import {SERIALIZER_BOOKKEEPER} from '../serializers';
 
 const layout = (state = {}, action) => {
     if (action.type === getAction('SET_LAYOUT')) {
@@ -21,9 +21,7 @@ const layout = (state = {}, action) => {
         if (action.payload.source === 'response') {
             newState = assocPath(
                 append(SERIALIZER_BOOKKEEPER, action.payload.itempath),
-                deserializeLayout({props: mergedProps})?.[
-                    SERIALIZER_BOOKKEEPER
-                ],
+                {props: mergedProps}?.[SERIALIZER_BOOKKEEPER],
                 newState
             );
         }
