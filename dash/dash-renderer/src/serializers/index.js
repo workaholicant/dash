@@ -9,7 +9,7 @@ const supportedTypes = {
 };
 
 export const SERIALIZER_BOOKKEEPER = '__dash_serialized_props';
-export const deserializedCallbackResponse = async response => {
+export const deserializeCbResponse = async response => {
     if (Object.keys(response).length == 1) {
         return {
             [Object.keys(response)[0]]: (

@@ -34,7 +34,7 @@ import {addHttpHeaders} from '../actions';
 import {
     serializeValue,
     SERIALIZER_BOOKKEEPER,
-    deserializedCallbackResponse
+    deserializeCbResponse
 } from '../serializers';
 
 export const addBlockedCallbacks = createAction<IBlockedCallback[]>(
@@ -394,7 +394,7 @@ function handleServerside(
                         result = {[id]: response.props};
                     }
 
-                    result = await deserializedCallbackResponse(result);
+                    result = await deserializeCbResponse(result);
                     recordProfile(result);
                     return result;
                 });
